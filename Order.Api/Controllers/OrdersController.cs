@@ -25,30 +25,32 @@ namespace Order.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(OrderCreateDto orderCreateDto)
         {
-            var newOrder = new Models.Order()
+            var newOrder = new Models.Order
             {
                 BuyerId = orderCreateDto.BuyerId,
-                Status = Models.Status.Suspend,
-                Address = new Models.Address()
+                Status = Status.Suspend,
+                Fail = string.Empty,
+                Address = new Address
                 {
+                    District = orderCreateDto.Address.District,
                     Line = orderCreateDto.Address.Line,
                     Province = orderCreateDto.Address.Province,
-                    District = orderCreateDto.Address.District,
                 },
-                CreatedOn = DateTime.Now
+                CreatedOn = DateTime.Now,
             };
 
             orderCreateDto.OrderItems.ForEach(orderItem =>
             {
-                newOrder.OrderItems.Add(new Models.OrderItem
+                newOrder.OrderItems.Add(new OrderItem()
                 {
+                    Count = orderItem.Count,
                     Price = orderItem.Price,
                     ProductId = orderItem.ProductId,
-                    Count = orderItem.Count,
                 });
             });
 
             await _dataContext.AddAsync(newOrder);
+
             await _dataContext.SaveChangesAsync();
 
             var orderCreatedRequestEvent = new OrderCreatedRequestEvent()
