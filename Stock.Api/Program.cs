@@ -1,5 +1,7 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Shared.Settings;
+using Stock.Api.Consumers;
 using Stock.Api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,15 +19,21 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddMassTransit(options =>
 {
+    options.AddConsumer<OrderCreatedEventConsumer>();
+
     options.UsingRabbitMq((context, config) =>
     {
         config.Host(builder.Configuration.GetConnectionString("RabbitMq"));
+
+        config.ReceiveEndpoint(RabbitMqSettingsConst.StockOrderCreatedEventQueueName, e =>
+        {
+            e.ConfigureConsumer<OrderCreatedEventConsumer>(context);
+        });
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
