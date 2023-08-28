@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Shared.Events;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -48,10 +49,23 @@ namespace SagaStateMachineWorkerService.Models
             }).Then(context =>
             {
                 Console.WriteLine($"OrderCreatedRequestEvent before: {context.Instance}");
-            }).TransitionTo(OrderCreated).Then(context =>
+            })
+            // OrderCreated Event'ı gönderme işlemi gerçekleştiriyoruz.
+            // Event içerisini Instance'dan da Data'dan da doldurabiliriz. Biz burada Data ile doldurma işlemi gerçekleştirdirk.
+            // Publish yapıldığı gibi bunu bir de dinleyen olması gerekmektedir.Bu da Stock Microservicedir.
+            .Publish(context => new OrderCreatedEvent
+            {
+                OrderItems = context.Data.OrderItems
+            })
+            .TransitionTo(OrderCreated)
+            .Then(context =>
             {
                 Console.WriteLine($"OrderCreatedRequestEvent after: {context.Instance}");
             }));
+
+            // StateMachine içerisinden gönderilen Eventların corelationId'si bulunmalıdır.
+            // Hangi staır ile ilgili hangi Instance ile ilgili olduğunu tespit etmesi için gereklidir.
+            // Bu işlem için Masstransit'de "CorrelatedBy<Guid>" adında bir sınıf bulunmakta. Event'a kalıtım yoluyla implement edersek bu özelliği kazandırmış oluruz.
         }
     }
 }

@@ -36,7 +36,7 @@ namespace SagaStateMachineWorkerService.Models
             {
                 var value = p.GetValue(this, null);
 
-                sb.Append($"{p.Name}:{value}");
+                sb.AppendLine($"{p.Name}:{value}");
             });
 
             sb.Append("-----------------------");
