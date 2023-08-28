@@ -53,7 +53,7 @@ namespace SagaStateMachineWorkerService.Models
             // OrderCreated Event'ı gönderme işlemi gerçekleştiriyoruz.
             // Event içerisini Instance'dan da Data'dan da doldurabiliriz. Biz burada Data ile doldurma işlemi gerçekleştirdirk.
             // Publish yapıldığı gibi bunu bir de dinleyen olması gerekmektedir.Bu da Stock Microservicedir.
-            .Publish(context => new OrderCreatedEvent
+            .Publish(context => new OrderCreatedEvent(context.Instance.CorrelationId)
             {
                 OrderItems = context.Data.OrderItems
             })
