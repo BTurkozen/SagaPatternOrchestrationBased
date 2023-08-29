@@ -14,6 +14,9 @@ namespace SagaStateMachineWorkerService.Models
         public Event<IOrderCreatedRequestEvent> OrderCreatedRequestEvent { get; set; }
         public State OrderCreated { get; private set; }
 
+        public Event<IStockReservedEvent> StockReservedEvent { get; set; }
+        public State StockReserved { get; private set; }
+
 
         public OrderStateMachine()
         {
@@ -66,6 +69,9 @@ namespace SagaStateMachineWorkerService.Models
             // StateMachine içerisinden gönderilen Eventların corelationId'si bulunmalıdır.
             // Hangi staır ile ilgili hangi Instance ile ilgili olduğunu tespit etmesi için gereklidir.
             // Bu işlem için Masstransit'de "CorrelatedBy<Guid>" adında bir sınıf bulunmakta. Event'a kalıtım yoluyla implement edersek bu özelliği kazandırmış oluruz.
+
+            // OrderCreated State'indeyken,StockReservedEvent event'i gelirse Stock işlemi tamamlandı. Artık Odeme işlemini başlatabiliriz.
+            During(OrderCreated, When(StockReservedEvent).TransitionTo(StockReserved));
         }
     }
 }
