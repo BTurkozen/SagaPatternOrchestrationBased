@@ -1,6 +1,7 @@
 ﻿using MassTransit;
 using Shared.Events;
 using Shared.Interfaces;
+using Shared.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,7 +72,24 @@ namespace SagaStateMachineWorkerService.Models
             // Bu işlem için Masstransit'de "CorrelatedBy<Guid>" adında bir sınıf bulunmakta. Event'a kalıtım yoluyla implement edersek bu özelliği kazandırmış oluruz.
 
             // OrderCreated State'indeyken,StockReservedEvent event'i gelirse Stock işlemi tamamlandı. Artık Odeme işlemini başlatabiliriz.
-            During(OrderCreated, When(StockReservedEvent).TransitionTo(StockReserved));
+            During(OrderCreated,
+                   When(StockReservedEvent)
+                    .TransitionTo(StockReserved)
+                    .Send(new Uri($"queue:{RabbitMqSettingsConst.StockReservedRequestPaymentQueueName}"), context => new StockReservedRequestPaymentEvent(context.Instance.CorrelationId)
+                    {
+                        OrderItem = context.Data.OrderItems,
+                        Payment = new Shared.Messages.PaymentMessage
+                        {
+                            CardName = context.Instance.CardName,
+                            CardNumber = context.Instance.CardNumber,
+                            CVV = context.Instance.CVV,
+                            Expiration = context.Instance.Expiration,
+                            TotalPrice = context.Instance.TotalPrice,
+                        }
+                    }).Then(context =>
+                    {
+                        Console.WriteLine($"StockReservedQueueName after: {context.Instance}");
+                    }));
         }
     }
 }

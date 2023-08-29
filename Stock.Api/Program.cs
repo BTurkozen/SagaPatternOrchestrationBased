@@ -34,6 +34,21 @@ builder.Services.AddMassTransit(options =>
 
 var app = builder.Build();
 
+using var scope = app.Services.CreateScope();
+
+var serviceProvider = scope.ServiceProvider;
+
+var dataContext = serviceProvider.GetRequiredService<DataContext>();
+
+if (dataContext.Stocks.Any() is false)
+{
+    dataContext.Stocks.Add(new Stock.Api.Models.Stock() { Id = 1, ProductId = 1, Count = 100 });
+
+    dataContext.Stocks.Add(new Stock.Api.Models.Stock() { Id = 2, ProductId = 2, Count = 200 });
+
+    dataContext.SaveChanges();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
