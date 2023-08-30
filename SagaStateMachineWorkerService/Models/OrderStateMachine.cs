@@ -16,6 +16,8 @@ namespace SagaStateMachineWorkerService.Models
         public Event<IPaymentCompletedEvent> PaymentCompletedEvent { get; set; }
         public State PaymentComplated { get; private set; }
 
+        public Event<IStockNotReservedEvent> StockNotReservedEvent { get; set; }
+        public State StockNotReserved { get; private set; }
 
         public OrderStateMachine()
         {
@@ -32,6 +34,8 @@ namespace SagaStateMachineWorkerService.Models
             Event(() => StockReservedEvent, x => x.CorrelateById(c => c.Message.CorrelationId));
 
             Event(() => PaymentCompletedEvent, x => x.CorrelateById(c => c.Message.CorrelationId));
+
+            Event(() => StockNotReservedEvent, x => x.CorrelateById(c => c.Message.CorrelationId));
 
             // Initial evresinden OrderCreated evresine geçilecek.
             // Bunu burada belirtmemiz gerekmektedir.
@@ -92,6 +96,13 @@ namespace SagaStateMachineWorkerService.Models
                     }).Then(context =>
                     {
                         Console.WriteLine($"StockReservedQueueName after: {context.Instance}");
+                    }), When(StockNotReservedEvent).TransitionTo(StockNotReserved).Publish(context => new OrderRequestFailedEvent
+                    {
+                        OrderId = context.Instance.OrderId,
+                        Reason = context.Data.Reason
+                    }).Then(context =>
+                    {
+                        Console.WriteLine($"StockNotReservedQueueName after: {context.Instance}");
                     }));
 
             During(StockReserved, When(PaymentCompletedEvent).TransitionTo(PaymentComplated).Publish(context => new OrderRequestCompletedEvent
