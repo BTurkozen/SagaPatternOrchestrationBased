@@ -1,6 +1,7 @@
 ﻿using MassTransit;
 using Shared.Events;
 using Shared.Interfaces;
+using Shared.Messages;
 using Shared.Settings;
 
 namespace SagaStateMachineWorkerService.Models
@@ -18,6 +19,9 @@ namespace SagaStateMachineWorkerService.Models
 
         public Event<IStockNotReservedEvent> StockNotReservedEvent { get; set; }
         public State StockNotReserved { get; private set; }
+
+        public Event<IPaymentFailedEvent> PaymentFailedEvent { get; set; }
+        public State PaymentFailed { get; set; }
 
         public OrderStateMachine()
         {
@@ -111,7 +115,15 @@ namespace SagaStateMachineWorkerService.Models
             }).Then(context =>
             {
                 Console.WriteLine($"PaymentCompletedEvent after: {context.Instance}");
-            }).Finalize());
+            }).Finalize(), When(PaymentFailedEvent).Send(new Uri($"queue:{RabbitMqSettingsConst.StockRollbackMessageQueueName}"), context =>
+                new StockRollbackMessage()
+                {
+                    OrderItems = context.Data.OrderItems,
+                }).TransitionTo(PaymentFailed).Publish(context => new OrderRequestFailedEvent
+                {
+                    OrderId = context.Instance.OrderId,
+                    Reason = context.Data.Reason
+                }));
         }
     }
 }

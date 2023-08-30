@@ -7,5 +7,6 @@
         public const string StockReservedRequestPaymentQueueName = "stock-reserved-request-payment-queue";
         public const string OrderRequestCompletedQueueName = "order-request-completed-queue";
         public const string OrderRequestFailedEventQueueName = "order-request-failed-queue";
+        public const string StockRollbackMessageQueueName = "stock-rollback-mqssage-queue";
     }
 }
