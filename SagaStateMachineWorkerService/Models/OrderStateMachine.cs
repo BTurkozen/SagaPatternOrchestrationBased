@@ -99,7 +99,13 @@ namespace SagaStateMachineWorkerService.Models
                         Console.WriteLine($"StockReservedQueueName after: {context.Instance}");
                     }));
 
-            During(StockReserved, When(PaymentCompletedEvent).TransitionTo(PaymentComplated));
+            During(StockReserved, When(PaymentCompletedEvent).TransitionTo(PaymentComplated).Publish(context => new OrderRequestCompletedEvent
+            {
+                OrderId = context.Instance.OrderId
+            }).Then(context =>
+            {
+                Console.WriteLine($"StockReservedQueueName after: {context.Instance}");
+            }));
         }
     }
 }
