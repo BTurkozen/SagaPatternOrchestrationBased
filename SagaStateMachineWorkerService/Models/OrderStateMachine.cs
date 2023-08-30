@@ -2,11 +2,6 @@
 using Shared.Events;
 using Shared.Interfaces;
 using Shared.Settings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SagaStateMachineWorkerService.Models
 {
@@ -104,8 +99,8 @@ namespace SagaStateMachineWorkerService.Models
                 OrderId = context.Instance.OrderId
             }).Then(context =>
             {
-                Console.WriteLine($"StockReservedQueueName after: {context.Instance}");
-            }));
+                Console.WriteLine($"PaymentCompletedEvent after: {context.Instance}");
+            }).Finalize());
         }
     }
 }
