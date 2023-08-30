@@ -115,15 +115,21 @@ namespace SagaStateMachineWorkerService.Models
             }).Then(context =>
             {
                 Console.WriteLine($"PaymentCompletedEvent after: {context.Instance}");
-            }).Finalize(), When(PaymentFailedEvent).Send(new Uri($"queue:{RabbitMqSettingsConst.StockRollbackMessageQueueName}"), context =>
+            }).Finalize(), When(PaymentFailedEvent).Publish(context => new OrderRequestFailedEvent
+            {
+                OrderId = context.Instance.OrderId,
+                Reason = context.Data.Reason
+            }).Send(new Uri($"queue:{RabbitMqSettingsConst.StockRollbackMessageQueueName}"), context =>
                 new StockRollbackMessage()
                 {
                     OrderItems = context.Data.OrderItems,
-                }).TransitionTo(PaymentFailed).Publish(context => new OrderRequestFailedEvent
+                }).TransitionTo(PaymentFailed).Then(context =>
                 {
-                    OrderId = context.Instance.OrderId,
-                    Reason = context.Data.Reason
+                    Console.WriteLine($"StockRollbackMessage after: {context.Instance}");
                 }));
+
+            // Final evresine gelen dataları sil komutu
+            SetCompletedWhenFinalized();
         }
     }
 }

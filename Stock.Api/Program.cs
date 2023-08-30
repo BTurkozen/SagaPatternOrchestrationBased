@@ -21,6 +21,8 @@ builder.Services.AddMassTransit(options =>
 {
     options.AddConsumer<OrderCreatedEventConsumer>();
 
+    options.AddConsumer<StockRollbackMessageConsumer>();
+
     options.UsingRabbitMq((context, config) =>
     {
         config.Host(builder.Configuration.GetConnectionString("RabbitMq"));
@@ -29,10 +31,20 @@ builder.Services.AddMassTransit(options =>
         {
             e.ConfigureConsumer<OrderCreatedEventConsumer>(context);
         });
+
+        config.ReceiveEndpoint(RabbitMqSettingsConst.StockRollbackMessageQueueName, e =>
+        {
+            e.ConfigureConsumer<StockRollbackMessageConsumer>(context);
+        });
     });
 });
 
+var logger = builder.Services.BuildServiceProvider().GetService<ILogger<StockRollbackMessageConsumer>>();
+
+builder.Services.AddSingleton(typeof(ILogger), logger);
+
 var app = builder.Build();
+
 
 using var scope = app.Services.CreateScope();
 
