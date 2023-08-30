@@ -77,7 +77,7 @@ namespace SagaStateMachineWorkerService.Models
                     .TransitionTo(StockReserved)
                     .Send(new Uri($"queue:{RabbitMqSettingsConst.StockReservedRequestPaymentQueueName}"), context => new StockReservedRequestPaymentEvent(context.Instance.CorrelationId)
                     {
-                        OrderItem = context.Data.OrderItems,
+                        OrderItems = context.Data.OrderItems,
                         Payment = new Shared.Messages.PaymentMessage
                         {
                             CardName = context.Instance.CardName,
@@ -85,7 +85,8 @@ namespace SagaStateMachineWorkerService.Models
                             CVV = context.Instance.CVV,
                             Expiration = context.Instance.Expiration,
                             TotalPrice = context.Instance.TotalPrice,
-                        }
+                        },
+                        BuyerId = context.Instance.BuyerId
                     }).Then(context =>
                     {
                         Console.WriteLine($"StockReservedQueueName after: {context.Instance}");

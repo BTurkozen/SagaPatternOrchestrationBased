@@ -9,6 +9,7 @@ namespace Shared.Interfaces
         public PaymentMessage Payment { get; set; }
 
         // Payment işleminde bir sorun yaşanırsa İşlemleri geri alabilmek için burada OrderItem'ları tutuyoruz.
-        public List<OrderItemMessage> OrderItem { get; set; }
+        public List<OrderItemMessage> OrderItems { get; set; }
+        public int BuyerId { get; set; }
     }
 }

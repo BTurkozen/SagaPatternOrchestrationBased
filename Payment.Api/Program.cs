@@ -1,4 +1,6 @@
 using MassTransit;
+using Payment.Api.Consumers;
+using Shared.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,15 +12,22 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddMassTransit(options =>
 {
+    options.AddConsumer<StockReservedRequestPaymentEventConsumer>();
+
     options.UsingRabbitMq((context, config) =>
     {
         config.Host(builder.Configuration.GetConnectionString("RabbitMq"));
+
+        config.ReceiveEndpoint(RabbitMqSettingsConst.StockReservedRequestPaymentQueueName, e =>
+        {
+            e.ConfigureConsumer<StockReservedRequestPaymentEventConsumer>(context);
+        });
     });
 });
 
-//var logger = builder.Services.BuildServiceProvider().GetService<ILogger<StockReservedEventConsumer>>();
+var logger = builder.Services.BuildServiceProvider().GetService<ILogger<StockReservedRequestPaymentEventConsumer>>();
 
-//builder.Services.AddSingleton(typeof(ILogger), logger);
+builder.Services.AddSingleton(typeof(ILogger), logger);
 
 var app = builder.Build();
 
