@@ -18,6 +18,9 @@ namespace SagaStateMachineWorkerService.Models
         public Event<IStockReservedEvent> StockReservedEvent { get; set; }
         public State StockReserved { get; private set; }
 
+        public Event<IPaymentCompletedEvent> PaymentCompletedEvent { get; set; }
+        public State PaymentComplated { get; private set; }
+
 
         public OrderStateMachine()
         {
@@ -30,6 +33,10 @@ namespace SagaStateMachineWorkerService.Models
             // Karşılaştırma sonucu var ise birşey yapma. yok ise yeni Guid Id ile oluştur.
             Event(() =>
                 OrderCreatedRequestEvent, y => y.CorrelateBy<int>(c => c.OrderId, z => z.Message.OrderId).SelectId(context => Guid.NewGuid()));
+
+            Event(() => StockReservedEvent, x => x.CorrelateById(c => c.Message.CorrelationId));
+
+            Event(() => PaymentCompletedEvent, x => x.CorrelateById(c => c.Message.CorrelationId));
 
             // Initial evresinden OrderCreated evresine geçilecek.
             // Bunu burada belirtmemiz gerekmektedir.
@@ -91,6 +98,8 @@ namespace SagaStateMachineWorkerService.Models
                     {
                         Console.WriteLine($"StockReservedQueueName after: {context.Instance}");
                     }));
+
+            During(StockReserved, When(PaymentCompletedEvent).TransitionTo(PaymentComplated));
         }
     }
 }
